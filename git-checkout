@@ -1,0 +1,13 @@
+pipeline{
+    agent any
+    stages{
+        stage("WELCOME") {
+            steps{
+                git 'https://github.com/adukdp/hello-world'
+            }
+            
+        }
+
+    }
+
+}

@@ -1,0 +1,45 @@
+by adding this parameter displayName you can display the msg and #+currentBuild with current build number on 
+jenkins dashboard
+
+currentBuild.displayName = "online-shopping-#"+currentbuild.number
+
+pipeline{
+    agent any
+
+    environment {
+        PATH = "/opt/maven/apache-maven-3.6.3/bin:$PATH"
+    }
+    stages{
+        stage("WELCOME") {
+            steps{
+                git 'https://github.com/advkdp/simple-java-maven-app-original'
+            }
+            
+        }
+        stage("Maven Build") {
+            steps {
+                sh "mvn clean package"
+                sh "mv target/*.jar target/myapp.jar"
+            }
+        
+        }
+        stage("Deploy-To-Tomcat") {
+            steps {
+                sshagent(['tomcat-new']) {
+                sh """
+                    scp -o StrictHostKeyChecking=no target/myapp.jar ec2-user@172.31.32.94:/opt/tomcat8/webapps/
+
+                    shh ec2-user@172.31.32.94 /opt/tomcat8/bin/shutdown.sh
+
+                    shh ec2-user@172.31.32.94 /opt/tomcat8/bin/startup.sh
+
+                  """
+                }
+            
+            }
+        
+        }
+
+    }   
+
+}

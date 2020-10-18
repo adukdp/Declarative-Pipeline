@@ -1,0 +1,40 @@
+pipeline{
+    agent any
+
+    environment {
+        PATH = "/opt/maven/apache-maven-3.6.3/bin:$PATH"
+    }
+    stages{
+        stage("WELCOME") {
+            steps{
+                git 'https://github.com/adukdp/hello-world'
+            }
+            
+        }
+        stage("Maven Build") {
+            steps {
+                sh "mvn clean package"
+                sh "mv target/*.war target/myapp.war"
+            }
+        
+        }
+        stage("Deploy-To-Tomcat") {
+            steps {
+                sshagent(['adm1']) {
+                sh """
+                    scp -o StrictHostKeyChecking=no target/myapp.war adminuser@192.168.1.4:/opt/tomcat8/webapps/
+
+                    ssh adminuser@192.168.1.4 /opt/tomcat8/bin/shutdown.sh
+
+                    ssh adminuser@192.168.1.4 /opt/tomcat8/bin/startup.sh
+
+                  """
+                }
+            
+            }
+        
+        }
+
+    }   
+
+}
